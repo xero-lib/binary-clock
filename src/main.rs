@@ -1,14 +1,14 @@
 use std::ops::{ShlAssign, AddAssign};
 
 fn main() {
-    let clock = Clock::new(
+    let clock = Clock::from(
         [true; 4],
         [true; 6]
     );
 
     println!("{}", clock.read());
 
-    let mut clock_2 = Clock::new(
+    let mut clock_2 = Clock::from(
         [false; 4],
         [false; 6],
     );
@@ -26,13 +26,22 @@ struct Clock {
     minutes: [bool; 6]
 }
 
+#[allow(unused)]
 impl Clock {
-    pub fn new(hours: [bool; 4], minutes: [bool; 6]) -> Self {
+    pub fn new() -> Self {
+        Self {
+            hours: [false; 4],
+            minutes: [false; 6],
+        }
+    }
+
+    pub fn from(hours: [bool; 4], minutes: [bool; 6]) -> Self {
         Self {
             hours,
             minutes,
         }
     }
+
     pub fn read(&self) -> String {
         let mut hours = 0;
         for i in 0..4 {
@@ -90,12 +99,29 @@ impl AddAssign<bool> for Clock {
 
 impl AddAssign<Self> for Clock {
     fn add_assign(&mut self, rhs: Self) {
-        todo!()   
-    }
-}
+        let mut minute_carry = false;
+        for i in 0..6 {
+            if (minute_carry | self.minutes[5 - i]) && rhs.minutes[5 - i] {
+                if minute_carry && !self.minutes[5 - i] {
+                    minute_carry = false;
+                    self.minutes[5 - i] = true; // consolidate minute_carry, needs optimization
+                } else {
+                    minute_carry = true;
+                    self.minutes[5 - i] = false;
+                }
+            } else {
+                if minute_carry {
+                    minute_carry = false;
+                    self.minutes[5 - i] = true;
+                } else {
+                    self.minutes[5 - i] |= rhs.minutes[5 - i];
+                }
+            }
+        }
 
-fn read_watch(number: usize) {
-    // input
-    assert_eq!(number, 1);
-    
+        let mut hour_carry = minute_carry;
+        for i in 0..4 {
+            todo!()
+        }
+    }
 }
