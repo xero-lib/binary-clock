@@ -58,7 +58,7 @@ impl Clock {
             minutes = 59;
         }
 
-        format!("{hours:0>2}:{minutes:0>2}",)
+        format!("{hours:0>2}:{minutes:0>2}")
     }
 }
 
