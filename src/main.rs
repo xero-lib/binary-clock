@@ -1,23 +1,16 @@
 use std::ops::{ShlAssign, AddAssign};
 
 fn main() {
-    let clock = Clock::from(
-        [true; 4],
-        [true; 6]
-    );
-
+    let mut clock = Clock::new();
+    clock += true;
     println!("{}", clock.read());
 
-    let mut clock_2 = Clock::from(
-        [false; 4],
-        [false; 6],
-    );
+    let mut clock_2 = Clock::new();
+    clock_2 += true;
+    println!("{}", clock_2.read());
 
-    *clock_2.minutes.last_mut().unwrap() = true;    
-    println!("{}", clock_2.read());
-    clock_2 <<= 1;
-    println!("{}", clock_2.read());
-    clock_2 <<= 1;
+    clock_2 += clock;
+
     println!("{}", clock_2.read());
 }
 
@@ -101,27 +94,16 @@ impl AddAssign<Self> for Clock {
     fn add_assign(&mut self, rhs: Self) {
         let mut minute_carry = false;
         for i in 0..6 {
-            if (minute_carry | self.minutes[5 - i]) && rhs.minutes[5 - i] {
-                if minute_carry && !self.minutes[5 - i] {
-                    minute_carry = false;
-                    self.minutes[5 - i] = true; // consolidate minute_carry, needs optimization
-                } else {
-                    minute_carry = true;
-                    self.minutes[5 - i] = false;
-                }
-            } else {
-                if minute_carry {
-                    minute_carry = false;
-                    self.minutes[5 - i] = true;
-                } else {
-                    self.minutes[5 - i] |= rhs.minutes[5 - i];
-                }
-            }
+            let current_carry = minute_carry;
+            minute_carry = current_carry as u8 + self.minutes[5 - i] as u8 + rhs.minutes[5 - i] as u8 >= 2;
+            self.minutes[5 - i] = self.minutes[5 - i] as u8 + rhs.minutes[5 - i] as u8 + current_carry as u8 + 2 % 2 == 1;
         }
 
         let mut hour_carry = minute_carry;
         for i in 0..4 {
-            todo!()
+            let current_carry = hour_carry;
+            hour_carry = current_carry as u8 + self.hours[3 - i] as u8 + rhs.hours[3 - i] as u8 >= 2;
+            self.hours[3 - i] = self.hours[3 - i] as u8 + rhs.hours[3 - i] as u8 + current_carry as u8 + 2 % 2 == 1;
         }
     }
 }
