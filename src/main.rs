@@ -1,12 +1,14 @@
-use std::ops::{ShlAssign, AddAssign};
+use std::ops::{ShlAssign, AddAssign, ShrAssign};
 
 fn main() {
     let mut clock = Clock::new();
     clock += true;
+    clock <<= 2;
     println!("{}", clock.read());
 
     let mut clock_2 = Clock::new();
     clock_2 += true;
+    clock_2 <<= 2;
     println!("{}", clock_2.read());
 
     clock_2 += clock;
@@ -75,10 +77,27 @@ impl ShlAssign<usize> for Clock {
     fn shl_assign(&mut self, rhs: usize) {
         for _ in 0..rhs {
             let hours_bool = self.minutes[0];
-            self.minutes.rotate_left(1);
-            *self.minutes.last_mut().unwrap() = false;
+            
+            self.minutes.rotate_left(1); // could potentially rotate by rhs
+            self.minutes[5] = false;
+
             self.hours.rotate_left(1);
-            *self.hours.last_mut().unwrap() = hours_bool;
+            self.hours[3] = hours_bool;
+        }
+    }
+}
+
+impl ShrAssign<usize> for Clock {
+    fn shr_assign(&mut self, rhs: usize) {
+        for _ in 0..rhs {
+            let minutes_bool = self.hours[3];
+
+            self.hours.rotate_right(1); // could potentially rotate by rhs
+            self.hours[0] = false;
+
+            self.minutes.rotate_right(1);
+            self.minutes[0] = minutes_bool;
+
         }
     }
 }
